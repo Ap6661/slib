@@ -1,4 +1,4 @@
-use std::io::{self, BufRead, BufReader, Write};
+use std::io::{self, BufRead, BufReader, Write}; 
 use interprocess::local_socket::{prelude::*, GenericNamespaced, ListenerOptions, Stream, ToNsName};
 use serde::{Deserialize, Serialize};
 use checksum_dir::checksum;
@@ -76,6 +76,7 @@ pub enum  Commands {
 }
 
 
+
 pub trait Daemon {
     fn shutdown(&self)                                              -> bool;
     fn fetch(&self)                                                 -> Vec<Item>;
@@ -124,17 +125,24 @@ pub trait Daemon {
             // Read from the connection
             let _ = conn.read_line(&mut buffer);
 
+            // Remove newline from the end
+            buffer.pop();
+
             // Turn the into an enum from a json string
             let command = serde_json::from_str::<Commands>(&buffer).unwrap();
+
+
             // Get the response from the Daemon
             let response = self.interpert_command(command);
 
             // Send the response back
-            conn.get_mut().write_all(serde_json::to_string(&response).unwrap().as_bytes()).expect("failed to send");
+            conn.get_mut().write_all(&response.as_bytes()).expect("failed to send");
             conn.get_mut().write_all(b"\n").expect("failed to send");
 
             // Turn the command back into an enum again
             let command = serde_json::from_str::<Commands>(&buffer).unwrap();
+            
+           
             // Clean up
             buffer.clear();
 
@@ -142,11 +150,11 @@ pub trait Daemon {
             // If it is told to shutdown
             if  command == Commands::Shutdown
                 &&
-            // and the daemon is good to stop
-                response == serde_json::to_string(&t).unwrap()
-            {
-                break 'listen;
-            }
+                    // and the daemon is good to stop
+                    response == serde_json::to_string(&t).unwrap()
+                    {
+                        break 'listen;
+                    }
         }
 
     }
@@ -154,7 +162,7 @@ pub trait Daemon {
 
     fn interpert_command(&self, c: Commands) -> String {
         match c {
-                Commands::Verify                           => { println!("Verifying... "); serde_json::to_string( &HASH.to_vec()                           ) },
+                Commands::Verify                           => { serde_json::to_string( &HASH.to_vec()                           ) },
                 Commands::Shutdown                         => { serde_json::to_string( &self.shutdown()                         ) },
                 Commands::Fetch                            => { serde_json::to_string( &self.fetch()                            ) },
                 Commands::Scan                             => { serde_json::to_string( &self.scan()                             ) },
@@ -198,8 +206,31 @@ pub struct Client;
 impl Client {
     pub fn new() -> Result<Client,SlibError> 
     {
-        // DONT FORGET TO VERIFY IF IT'S VALID VERSION OF CLIENT STUPID
-        Ok(Client{})
+        let command = Commands::Verify;
+
+        let mut buffer = String::with_capacity(128);
+        let conn = Stream::connect(NAME.to_ns_name::<GenericNamespaced>().unwrap()).unwrap();
+        let mut conn = BufReader::new(conn);
+        let _ = conn.get_mut().write_all(serde_json::to_string(&command).unwrap().as_bytes());
+        let _ = conn.get_mut().write_all(b"\n");
+        let _ = conn.read_line(&mut buffer);
+
+        // Remove newline from the end
+        let mut buffer = buffer.chars();
+        buffer.next_back();
+        let buffer = buffer.as_str();
+
+        let hash = serde_json::from_str::<Vec<u8>>(&buffer).unwrap();
+        let matching = hash.iter().zip(HASH.to_vec().iter()).filter(|&(a, b)| a == b).count();
+        if matching == hash.len() 
+        {
+            Ok(Client{})
+        }
+        else
+        {
+            Err(SlibError::InvalidServerHash(hash))
+        }
+        
     }
 
     fn send_command(&self, c: Commands) -> String {
@@ -209,7 +240,13 @@ impl Client {
         let _ = conn.get_mut().write_all(serde_json::to_string(&c).unwrap().as_bytes());
         let _ = conn.get_mut().write_all(b"\n");
         let _ = conn.read_line(&mut buffer);
-        buffer
+        //
+        // Remove newline from the end
+        let mut buffer = buffer.chars();
+        buffer.next_back();
+        let buffer = buffer.as_str();
+
+        buffer.to_string()
     }
 
     /// Shutdown the server
@@ -318,7 +355,7 @@ impl Client {
         serde_json::from_str::<bool>(&self.send_command(Commands::PlaylistAddTo{playlist, id})).unwrap()
     }
     /// Remove from a local playlist
-    pub fn playlist_remove_from(&self, playlist: Item, id: Item)        -> bool
+    pub fn playlist_remove_from(&self, playlist: Item, id: Item)        -> bool 
     {
         serde_json::from_str::<bool>(&self.send_command(Commands::PlaylistRemoveFrom{playlist, id})).unwrap()
     }
@@ -353,7 +390,7 @@ pub struct Item {
     image_path: String,
 }
 
-#[derive(Deserialize,Serialize)]
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct SongInfo {
     length: f32,
     album: Item,
@@ -373,6 +410,43 @@ mod tests {
     use super::*;
     use std::{thread, time::Duration};
 
+    macro_rules! song_info {
+        () => {
+            SongInfo { 
+                length: 10.0,
+                album: Item
+                { 
+                    id: String::from("1234"), 
+                    image_path: String::from("none"), 
+                    name: String::from("Some Album")
+                },
+                artist: String::from("Some Artist"),
+            }
+        }
+    }
+
+    macro_rules! item {
+        () => {
+            Item {
+                id: String::from("2345"),
+                image_path: String::from("none"),
+                name: String::from("Some Item"),
+            }
+        }
+    } 
+
+    macro_rules! vec_item {
+        () => {
+            vec!(item!(), item!(), item!(), item!(), item!(), item!(), item!())
+        }
+    }
+
+    macro_rules! buffer_test {
+        () => {
+            "Some really long query that just wont end since I am testing to see if the buffer size is too small or if I need to increase how much the buffer can hold in the ipc portions, Why don't I add more until we reach a size that is larger that lets go ahead and say 255".to_string()
+        }
+    }
+
     struct Server;
     impl Daemon for Server 
     {
@@ -385,7 +459,7 @@ mod tests {
         }
 
         fn scan(&self)                                                  -> bool {
-            todo!()
+            true
         }
 
         fn status(&self)                                                -> Status {
@@ -413,66 +487,88 @@ mod tests {
         }
 
         fn queue_add(&self, id: Item, position: u8)                     -> bool {
+            let _ = (id, position);
             todo!()
         }
 
         fn queue_remove(&self, id: Item)                                -> bool {
+            let _ = id;
             todo!()
         }
 
         fn volume_adjust(&self, amount: u8)                             -> bool {
+            let _ = amount;
             todo!()
         }
 
         fn volume_set(&self, amount: u8)                                -> bool {
+            let _ = amount;
             todo!()
         }
 
         fn search(&self, query: String)                                 -> Vec<Item> {
-            todo!()
+            if  query == buffer_test!()
+            {
+                vec_item!()
+            }
+            else
+            {
+                vec!()
+            }
         }
 
         fn download(&self, id: Item)                                    -> bool {
+            let _ = id;
             todo!()
         }
 
         fn delete(&self, id: Item)                                      -> bool {
+            let _ = id;
             todo!()
         }
 
         fn star(&self, id: Item)                                        -> bool {
+            let _ = id;
             todo!()
         }
 
         fn playlist_download(&self, id: Item)                           -> bool {
+            let _ = id;
             todo!()
         }
 
         fn playlist_upload(&self, id: Item)                             -> bool {
+            let _ = id;
             todo!()
         }
 
         fn playlist_new(&self, name: String)                            -> bool {
+            let _ = name;
             todo!()
         }
 
         fn playlist_add_to(&self, playlist: Item, id: Item)             -> bool {
+            let _ = (id, playlist);
             todo!()
         }
 
         fn playlist_remove_from(&self, playlist: Item, id: Item)        -> bool {
+            let _ = (id, playlist);
             todo!()
         }
 
         fn playlist_delete(&self, id: Item)                             -> bool {
+            let _ = id;
             todo!()
         }
 
         fn song_info(&self, id: Item)                                   -> SongInfo {
-            todo!()
+            let _ = id;
+            song_info!()
         }
 
         fn album_info(&self, id: Item)                                  -> AlbumInfo {
+            let _ = id;
             todo!()
         }
     }
@@ -487,7 +583,11 @@ mod tests {
 
         thread::sleep(Duration::from_secs(1));
         let client = Client::new().unwrap();
-        client.send_command(Commands::Shutdown);
+
+        assert_eq!(song_info!(), client.song_info(item!()));
+        assert_eq!(vec_item!(), client.search(buffer_test!()));
+
+        client.shutdown();
     }
 
 }
