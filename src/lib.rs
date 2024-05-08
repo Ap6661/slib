@@ -9,9 +9,9 @@ pub enum SlibError {
     InvalidServerHash(Vec<u8>),
 }
 
-pub const NAME: &str = "slib.socket";
+const NAME: &str = "slib.socket";
 
-pub const HASH: [u8; 32] = checksum!("./src");
+const HASH: [u8; 32] = checksum!("./src");
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum  Commands {
@@ -198,10 +198,11 @@ pub struct Client;
 impl Client {
     pub fn new() -> Result<Client,SlibError> 
     {
+        // DONT FORGET TO VERIFY IF IT'S VALID VERSION OF CLIENT STUPID
         Ok(Client{})
     }
 
-    pub fn send_command(&self, c: Commands) -> String {
+    fn send_command(&self, c: Commands) -> String {
         let mut buffer = String::with_capacity(128);
         let conn = Stream::connect(NAME.to_ns_name::<GenericNamespaced>().unwrap()).unwrap();
         let mut conn = BufReader::new(conn);
@@ -209,6 +210,132 @@ impl Client {
         let _ = conn.get_mut().write_all(b"\n");
         let _ = conn.read_line(&mut buffer);
         buffer
+    }
+
+    /// Shutdown the server
+    pub fn shutdown(&self) -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::Shutdown)).unwrap()
+    }
+    /// Fetch IDs of remote songs and playlists
+    pub fn fetch(&self)                                                 -> Vec<Item>
+    {
+        serde_json::from_str::<Vec<Item>>(&self.send_command(Commands::Fetch)).unwrap()
+    }
+    /// Tell the Subsonic server to rescan
+    pub fn scan(&self)                                                  -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::Scan)).unwrap()
+    }
+    /// Get the status of playback
+    pub fn status(&self)                                                -> Status
+    {
+        serde_json::from_str::<Status>(&self.send_command(Commands::Status)).unwrap()
+    }
+    /// Restart currently playing song
+    pub fn restart(&self)                                               -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::Restart)).unwrap()
+    }
+    /// Play (unpause) Playback
+    pub fn play(&self)                                                  -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::Play)).unwrap()
+    }
+    /// Stop and clear queue
+    pub fn stop(&self)                                                  -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::Stop)).unwrap()
+    }
+    /// Pause Playback
+    pub fn pause(&self)                                                 -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::Pause)).unwrap()
+    }
+    /// Skip the currentlly playing song
+    pub fn skip(&self)                                                  -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::Skip)).unwrap()
+    }
+    /// Add a song to the queue
+    pub fn queue_add(&self, id: Item, position: u8)                     -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::QueueAdd{id, position})).unwrap()
+    }
+    /// Remove a song from the queue
+    pub fn queue_remove(&self, id: Item)                                -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::QueueRemove(id))).unwrap()
+    }
+    /// Adjust volume by percent
+    pub fn volume_adjust(&self, amount: u8)                             -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::VolumeAdjust(amount))).unwrap()
+    }
+    /// Set the volume by percent
+    pub fn volume_set(&self, amount: u8)                                -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::VolumeSet(amount))).unwrap()
+    }
+    /// Search for a query
+    pub fn search(&self, query: String)                                 -> Vec<Item>
+    {
+        serde_json::from_str::<Vec<Item>>(&self.send_command(Commands::Search(query))).unwrap()
+    }
+    /// Download a song for offline playback
+    pub fn download(&self, id: Item)                                    -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::Download(id))).unwrap()
+    }
+    /// Delete a song from offline playback
+    pub fn delete(&self, id: Item)                                      -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::Delete(id))).unwrap()
+    }
+    /// Favorite a song on the Subsonic server
+    pub fn star(&self, id: Item)                                        -> bool 
+    {
+        serde_json::from_str::<bool >(&self.send_command(Commands::Star(id))).unwrap()
+    }
+    /// Download all the songs from a playlist
+    pub fn playlist_download(&self, id: Item)                           -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::PlaylistDownload(id))).unwrap()
+    }
+    /// Upload changes on a local playlist
+    pub fn playlist_upload(&self, id: Item)                             -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::PlaylistUpload(id))).unwrap()
+    }
+    /// Create a new local playlist
+    pub fn playlist_new(&self, name: String)                            -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::PlaylistNew{name})).unwrap()
+    }
+    /// Add to a local playlist
+    pub fn playlist_add_to(&self, playlist: Item, id: Item)             -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::PlaylistAddTo{playlist, id})).unwrap()
+    }
+    /// Remove from a local playlist
+    pub fn playlist_remove_from(&self, playlist: Item, id: Item)        -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::PlaylistRemoveFrom{playlist, id})).unwrap()
+    }
+    /// Delete a local playlist
+    pub fn playlist_delete(&self, id: Item)                             -> bool
+    {
+        serde_json::from_str::<bool>(&self.send_command(Commands::PlaylistDelete(id))).unwrap()
+    }
+    /// Get the info of a song
+    pub fn song_info(&self, id: Item)                                   -> SongInfo
+    {
+        serde_json::from_str::<SongInfo>(&self.send_command(Commands::SongInfo(id))).unwrap()
+    }
+    /// Get the info of a album
+    pub fn album_info(&self, id: Item)                                  -> AlbumInfo
+    {
+        serde_json::from_str::<AlbumInfo>(&self.send_command(Commands::AlbumInfo(id))).unwrap()
     }
 }
 
