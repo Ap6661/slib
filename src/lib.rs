@@ -80,28 +80,51 @@ pub enum  Commands {
 pub trait Daemon {
     fn shutdown(&self)                                              -> bool;
     fn fetch(&self)                                                 -> Vec<Item>;
+    /// Tell the Subsonic server to rescan
     fn scan(&self)                                                  -> bool;
+    /// Get the status of playback
     fn status(&self)                                                -> &Status;
+    /// Restart currently playing song
     fn restart(&self)                                               -> bool;
+    /// Play (unpause) Playback
     fn play(&self)                                                  -> bool;
+    /// Stop and clear queue
     fn stop(&self)                                                  -> bool;
+    /// Pause Playback
     fn pause(&self)                                                 -> bool;
+    /// Skip the currentlly playing song
     fn skip(&self)                                                  -> bool;
+    /// Add a song to the queue
     fn queue_add(&self, id: Item, position: u8)                     -> bool;
+    /// Remove a song from the queue
     fn queue_remove(&self, id: Item)                                -> bool;
+    /// Adjust volume by percent
     fn volume_adjust(&self, amount: u8)                             -> bool;
+    /// Set the volume by percent
     fn volume_set(&self, amount: u8)                                -> bool;
+    /// Search for a query
     fn search(&self, query: String)                                 -> Vec<Item>;
+    /// Download a song for offline playback
     fn download(&self, id: Item)                                    -> bool;
+    /// Delete a song from offline playback
     fn delete(&self, id: Item)                                      -> bool;
+    /// Favorite a song on the Subsonic server
     fn star(&self, id: Item)                                        -> bool; 
+    /// Download all the songs from a playlist
     fn playlist_download(&self, id: Item)                           -> bool;
+    /// Upload changes on a local playlist
     fn playlist_upload(&self, id: Item)                             -> bool;
+    /// Create a new local playlist
     fn playlist_new(&self, name: String)                            -> bool;
+    /// Add to a local playlist
     fn playlist_add_to(&self, playlist: Item, id: Item)             -> bool;
+    /// Remove from a local playlist
     fn playlist_remove_from(&self, playlist: Item, id: Item)        -> bool;
+    /// Delete a local playlist
     fn playlist_delete(&self, id: Item)                             -> bool;
+    /// Get the info of a song
     fn song_info(&self, id: Item)                                   -> SongInfo;
+    /// Get the info of a album
     fn album_info(&self, id: Item)                                  -> AlbumInfo;
 
 
