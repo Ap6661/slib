@@ -378,29 +378,29 @@ impl Client {
 
 #[derive(Deserialize,Serialize)]
 pub struct Status {
-    playing: bool,
-    current_song: Item,
-    queue: Vec<String>,
+    pub playing: bool,
+    pub current_song: Item,
+    pub queue: Vec<String>,
 }
 
 #[derive(Deserialize,Serialize, Debug, PartialEq, Eq)]
 pub struct Item {
-    name: String,
-    id: String,
-    image_path: String,
+    pub name: String,
+    pub id: String,
+    pub image_path: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct SongInfo {
-    length: f32,
-    album: Item,
-    artist: String,
+    pub length: f32,
+    pub album: Item,
+    pub artist: String,
 }
 
 #[derive(Deserialize,Serialize)]
 pub struct AlbumInfo {
-    songs: Vec<Item>,
-    artist: String,
+    pub songs: Vec<Item>,
+    pub artist: String,
 }
 
 
