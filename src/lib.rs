@@ -81,7 +81,7 @@ pub trait Daemon {
     fn shutdown(&self)                                              -> bool;
     fn fetch(&self)                                                 -> Vec<Item>;
     fn scan(&self)                                                  -> bool;
-    fn status(&self)                                                -> Status;
+    fn status(&self)                                                -> &Status;
     fn restart(&self)                                               -> bool;
     fn play(&self)                                                  -> bool;
     fn stop(&self)                                                  -> bool;
@@ -376,14 +376,14 @@ impl Client {
     }
 }
 
-#[derive(Deserialize,Serialize)]
+#[derive(Deserialize,Serialize, Clone)]
 pub struct Status {
     pub playing: bool,
     pub current_song: Option<Item>,
     pub queue: Vec<String>,
 }
 
-#[derive(Deserialize,Serialize, Debug, PartialEq, Eq)]
+#[derive(Deserialize,Serialize, Debug, PartialEq, Eq, Clone)]
 pub struct Item {
     pub name: String,
     pub id: String,
@@ -462,7 +462,7 @@ mod tests {
             true
         }
 
-        fn status(&self)                                                -> Status {
+        fn status(&self)                                                -> &Status {
             todo!()
         }
 
