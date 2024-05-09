@@ -379,7 +379,7 @@ impl Client {
 #[derive(Deserialize,Serialize)]
 pub struct Status {
     pub playing: bool,
-    pub current_song: Item,
+    pub current_song: Option<Item>,
     pub queue: Vec<String>,
 }
 
