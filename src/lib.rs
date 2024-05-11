@@ -138,9 +138,9 @@ pub trait Daemon {
     /// Delete a local playlist
     fn playlist_delete(&self, id: Item)                             -> bool;
     /// Get the info of a song
-    fn song_info(&self, id: Item)                                   -> SongInfo;
+    fn song_info(&self, id: Item)                                   -> Option<SongInfo>;
     /// Get the info of a album
-    fn album_info(&self, id: Item)                                  -> AlbumInfo;
+    fn album_info(&self, id: Item)                                  -> Option<AlbumInfo>;
 
 
     fn start(&self) 
@@ -421,9 +421,9 @@ impl Client {
         serde_json::from_str::<bool>(&self.send_command(Commands::PlaylistDelete(id))).unwrap()
     }
     /// Get the info of a song
-    pub fn song_info(&self, id: Item)                                   -> SongInfo
+    pub fn song_info(&self, id: Item)                                   -> Option<SongInfo>
     {
-        serde_json::from_str::<SongInfo>(&self.send_command(Commands::SongInfo(id))).unwrap()
+        serde_json::from_str::<Option<SongInfo>>(&self.send_command(Commands::SongInfo(id))).unwrap()
     }
     /// Get the info of a album
     pub fn album_info(&self, id: Item)                                  -> AlbumInfo
@@ -614,12 +614,12 @@ mod tests {
             todo!()
         }
 
-        fn song_info(&self, id: Item)                                   -> SongInfo {
+        fn song_info(&self, id: Item)                                   -> Option<SongInfo> {
             let _ = id;
-            song_info!()
+            Some(song_info!())
         }
 
-        fn album_info(&self, id: Item)                                  -> AlbumInfo {
+        fn album_info(&self, id: Item)                                  -> Option<AlbumInfo> {
             let _ = id;
             todo!()
         }
@@ -652,7 +652,7 @@ mod tests {
         thread::sleep(Duration::from_secs(1));
         let client = Client::new().unwrap();
 
-        assert_eq!(song_info!(), client.song_info(item!()));
+        assert_eq!(song_info!(), client.song_info(item!()).unwrap());
         assert_eq!(vec_item!(), client.search(buffer_test!()));
 
         client.shutdown();
