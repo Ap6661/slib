@@ -19,8 +19,16 @@ pub enum  Commands {
     Verify,
     /// Shutdown the server
     Shutdown,
-    /// Fetch IDs of remote songs and playlists
-    Fetch,
+    
+    /// Return all artists
+    FetchArtists,
+    /// Return all albums
+    FetchAlbums,
+    /// Return all playlists
+    FetchPlaylists,
+    /// Return all songs
+    FetchSongs,
+
     /// Tell the Subsonic server to rescan
     Scan,
     /// Get the status of playback
@@ -79,7 +87,14 @@ pub enum  Commands {
 
 pub trait Daemon {
     fn shutdown(&self)                                              -> bool;
-    fn fetch(&self)                                                 -> Vec<Item>;
+    /// Return all artists
+    fn fetch_artists(&self)                                         -> Vec<Item>;
+    /// Return all albums
+    fn fetch_albums(&self)                                          -> Vec<Item>;
+    /// Return all songs
+    fn fetch_playlists(&self)                                       -> Vec<Item>;
+    /// Return all songs
+    fn fetch_songs(&self)                                           -> Vec<Item>;
     /// Tell the Subsonic server to rescan
     fn scan(&self)                                                  -> bool;
     /// Get the status of playback
@@ -187,7 +202,10 @@ pub trait Daemon {
         match c {
                 Commands::Verify                           => { serde_json::to_string( &HASH.to_vec()                           ) },
                 Commands::Shutdown                         => { serde_json::to_string( &self.shutdown()                         ) },
-                Commands::Fetch                            => { serde_json::to_string( &self.fetch()                            ) },
+                Commands::FetchArtists                     => { serde_json::to_string( &self.fetch_artists()                    ) },
+                Commands::FetchAlbums                      => { serde_json::to_string( &self.fetch_albums()                     ) },
+                Commands::FetchPlaylists                   => { serde_json::to_string( &self.fetch_playlists()                  ) },
+                Commands::FetchSongs                       => { serde_json::to_string( &self.fetch_songs()                      ) },
                 Commands::Scan                             => { serde_json::to_string( &self.scan()                             ) },
                 Commands::Status                           => { serde_json::to_string( &self.status()                           ) },
                 Commands::Restart                          => { serde_json::to_string( &self.restart()                          ) },
@@ -278,9 +296,24 @@ impl Client {
         serde_json::from_str::<bool>(&self.send_command(Commands::Shutdown)).unwrap()
     }
     /// Fetch IDs of remote songs and playlists
-    pub fn fetch(&self)                                                 -> Vec<Item>
+    pub fn fetch_artist(&self)                                                 -> Vec<Item>
     {
-        serde_json::from_str::<Vec<Item>>(&self.send_command(Commands::Fetch)).unwrap()
+        serde_json::from_str::<Vec<Item>>(&self.send_command(Commands::FetchArtists)).unwrap()
+    }
+    /// Fetch IDs of remote songs and playlists
+    pub fn fetch_albums(&self)                                                 -> Vec<Item>
+    {
+        serde_json::from_str::<Vec<Item>>(&self.send_command(Commands::FetchAlbums)).unwrap()
+    }
+    /// Fetch IDs of remote songs and playlists
+    pub fn fetch_playlists(&self)                                                 -> Vec<Item>
+    {
+        serde_json::from_str::<Vec<Item>>(&self.send_command(Commands::FetchPlaylists)).unwrap()
+    }
+    /// Fetch IDs of remote songs and playlists
+    pub fn fetch_songs(&self)                                                 -> Vec<Item>
+    {
+        serde_json::from_str::<Vec<Item>>(&self.send_command(Commands::FetchSongs)).unwrap()
     }
     /// Tell the Subsonic server to rescan
     pub fn scan(&self)                                                  -> bool
@@ -477,10 +510,6 @@ mod tests {
             true
         }
 
-        fn fetch(&self)                                                 -> Vec<Item> {
-            todo!()
-        }
-
         fn scan(&self)                                                  -> bool {
             true
         }
@@ -592,6 +621,22 @@ mod tests {
 
         fn album_info(&self, id: Item)                                  -> AlbumInfo {
             let _ = id;
+            todo!()
+        }
+
+        fn fetch_artists(&self)                                         -> Vec<Item> {
+            todo!()
+        }
+
+        fn fetch_albums(&self)                                          -> Vec<Item> {
+            todo!()
+        }
+
+        fn fetch_playlists(&self)                                       -> Vec<Item> {
+            todo!()
+        }
+
+        fn fetch_songs(&self)                                           -> Vec<Item> {
             todo!()
         }
     }
