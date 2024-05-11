@@ -1,4 +1,4 @@
-use std::io::{self, BufRead, BufReader, Write}; 
+use std::{io::{self, BufRead, BufReader, Write}, time::Duration}; 
 use interprocess::local_socket::{prelude::*, GenericNamespaced, ListenerOptions, Stream, ToNsName};
 use serde::{Deserialize, Serialize};
 use checksum_dir::checksum;
@@ -436,7 +436,7 @@ impl Client {
 pub struct Status {
     pub playing: bool,
     pub current_song: Option<Item>,
-    pub queue: Vec<String>,
+    pub queue: Vec<Item>,
 }
 
 #[derive(Deserialize,Serialize, Debug, PartialEq, Eq, Clone)]
@@ -448,7 +448,7 @@ pub struct Item {
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct SongInfo {
-    pub length: f32,
+    pub length: Duration,
     pub album: Item,
     pub artist: String,
 }
@@ -469,7 +469,7 @@ mod tests {
     macro_rules! song_info {
         () => {
             SongInfo { 
-                length: 10.0,
+                length: core::time::Duration::from_secs(10),
                 album: Item
                 { 
                     id: String::from("1234"), 
