@@ -1,3 +1,4 @@
+use core::f32;
 use std::{io::{self, BufRead, BufReader, Write}, time::Duration}; 
 use interprocess::local_socket::{prelude::*, GenericNamespaced, ListenerOptions, Stream, ToNsName};
 use serde::{Deserialize, Serialize};
@@ -13,7 +14,7 @@ const NAME: &str = "slib.socket";
 
 const HASH: [u8; 32] = checksum!("./src");
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum  Commands {
     /// Verify slib version
     Verify,
@@ -51,9 +52,9 @@ pub enum  Commands {
     QueueRemove(Item),
 
     /// Adjust volume by percent
-    VolumeAdjust(u8),
+    VolumeAdjust(f32),
     /// Set the volume by percent
-    VolumeSet(u8),
+    VolumeSet(f32),
 
     /// Search for a query
     Search(String),
@@ -114,9 +115,9 @@ pub trait Daemon {
     /// Remove a song from the queue
     fn queue_remove(&self, id: Item)                                -> bool;
     /// Adjust volume by percent
-    fn volume_adjust(&self, amount: u8)                             -> bool;
+    fn volume_adjust(&self, amount: f32)                            -> bool;
     /// Set the volume by percent
-    fn volume_set(&self, amount: u8)                                -> bool;
+    fn volume_set(&self, amount: f32)                               -> bool;
     /// Search for a query
     fn search(&self, query: String)                                 -> Vec<Item>;
     /// Download a song for offline playback
@@ -361,12 +362,12 @@ impl Client {
         serde_json::from_str::<bool>(&self.send_command(Commands::QueueRemove(id))).unwrap()
     }
     /// Adjust volume by percent
-    pub fn volume_adjust(&self, amount: u8)                             -> bool
+    pub fn volume_adjust(&self, amount: f32)                             -> bool
     {
         serde_json::from_str::<bool>(&self.send_command(Commands::VolumeAdjust(amount))).unwrap()
     }
     /// Set the volume by percent
-    pub fn volume_set(&self, amount: u8)                                -> bool
+    pub fn volume_set(&self, amount: f32)                                -> bool
     {
         serde_json::from_str::<bool>(&self.send_command(Commands::VolumeSet(amount))).unwrap()
     }
@@ -548,12 +549,12 @@ mod tests {
             todo!()
         }
 
-        fn volume_adjust(&self, amount: u8)                             -> bool {
+        fn volume_adjust(&self, amount: f32)                             -> bool {
             let _ = amount;
             todo!()
         }
 
-        fn volume_set(&self, amount: u8)                                -> bool {
+        fn volume_set(&self, amount: f32)                                -> bool {
             let _ = amount;
             todo!()
         }
