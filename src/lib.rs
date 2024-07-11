@@ -103,21 +103,21 @@ pub trait Daemon {
     /// Restart currently playing song
     fn restart(&self)                                               -> bool;
     /// Play (unpause) Playback
-    fn play(&self)                                                  -> bool;
+    fn play(&mut self)                                              -> bool;
     /// Stop and clear queue
-    fn stop(&self)                                                  -> bool;
+    fn stop(&mut self)                                              -> bool;
     /// Pause Playback
-    fn pause(&self)                                                 -> bool;
+    fn pause(&mut self)                                             -> bool;
     /// Skip the currentlly playing song
-    fn skip(&self)                                                  -> bool;
+    fn skip(&mut self)                                              -> bool;
     /// Add a song to the queue
-    fn queue_add(&self, id: Item, position: u8)                     -> bool;
+    fn queue_add(&mut self, id: Item, position: u8)                 -> bool;
     /// Remove a song from the queue
-    fn queue_remove(&self, id: Item)                                -> bool;
+    fn queue_remove(&mut self, id: Item)                            -> bool;
     /// Adjust volume by percent
-    fn volume_adjust(&self, amount: f32)                            -> bool;
+    fn volume_adjust(&mut self, amount: f32)                        -> bool;
     /// Set the volume by percent
-    fn volume_set(&self, amount: f32)                               -> bool;
+    fn volume_set(&mut self, amount: f32)                           -> bool;
     /// Search for a query
     fn search(&self, query: String)                                 -> Vec<Item>;
     /// Download a song for offline playback
@@ -144,7 +144,7 @@ pub trait Daemon {
     fn album_info(&self, id: Item)                                  -> Option<AlbumInfo>;
 
 
-    fn start(&self) 
+    fn start(&mut self) 
     { 
         //  Try to put the name in the Namespace
         let name = NAME.to_ns_name::<GenericNamespaced>().unwrap();
@@ -199,7 +199,7 @@ pub trait Daemon {
     }
 
 
-    fn interpert_command(&self, c: Commands) -> String {
+    fn interpert_command(&mut self, c: Commands) -> String {
         match c {
                 Commands::Verify                           => { serde_json::to_string( &HASH.to_vec()                           ) },
                 Commands::Shutdown                         => { serde_json::to_string( &self.shutdown()                         ) },
@@ -524,43 +524,43 @@ mod tests {
             todo!()
         }
 
-        fn play(&self)                                                  -> bool {
+        fn play(&mut self)                                              -> bool {
             todo!()
         }
 
-        fn stop(&self)                                                  -> bool {
+        fn stop(&mut self)                                              -> bool {
             todo!()
         }
 
-        fn pause(&self)                                                 -> bool {
+        fn pause(&mut self)                                            -> bool {
             todo!()
         }
 
-        fn skip(&self)                                                  -> bool {
+        fn skip(&mut self)                                             -> bool {
             todo!()
         }
 
-        fn queue_add(&self, id: Item, position: u8)                     -> bool {
+        fn queue_add(&mut self, id: Item, position: u8)                -> bool {
             let _ = (id, position);
             todo!()
         }
 
-        fn queue_remove(&self, id: Item)                                -> bool {
+        fn queue_remove(&mut self, id: Item)                           -> bool {
             let _ = id;
             todo!()
         }
 
-        fn volume_adjust(&self, amount: f32)                             -> bool {
+        fn volume_adjust(&mut self, amount: f32)                       -> bool {
             let _ = amount;
             todo!()
         }
 
-        fn volume_set(&self, amount: f32)                                -> bool {
+        fn volume_set(&mut self, amount: f32)                          -> bool {
             let _ = amount;
             todo!()
         }
 
-        fn search(&self, query: String)                                 -> Vec<Item> {
+        fn search(&self, query: String)                               -> Vec<Item> {
             if  query == buffer_test!()
             {
                 vec_item!()
@@ -647,7 +647,7 @@ mod tests {
     fn verify() 
     {
         thread::spawn ( move || {
-            let test_server = Server{};
+            let mut test_server = Server{};
             test_server.start();
         });
 
