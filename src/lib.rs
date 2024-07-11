@@ -89,15 +89,15 @@ pub enum  Commands {
 pub trait Daemon {
     fn shutdown(&self)                                              -> bool;
     /// Return all artists
-    fn fetch_artists(&self)                                         -> Vec<Item>;
+    fn fetch_artists(&mut self)                                     -> Vec<Item>;
     /// Return all albums
-    fn fetch_albums(&self)                                          -> Vec<Item>;
+    fn fetch_albums(&mut self)                                      -> Vec<Item>;
     /// Return all songs
-    fn fetch_playlists(&self)                                       -> Vec<Item>;
+    fn fetch_playlists(&mut self)                                   -> Vec<Item>;
     /// Return all songs
-    fn fetch_songs(&self)                                           -> Vec<Item>;
+    fn fetch_songs(&mut self)                                       -> Vec<Item>;
     /// Tell the Subsonic server to rescan
-    fn scan(&self)                                                  -> bool;
+    fn scan(&mut self)                                              -> bool;
     /// Get the status of playback
     fn status(&self)                                                -> &Status;
     /// Restart currently playing song
@@ -512,7 +512,7 @@ mod tests {
             true
         }
 
-        fn scan(&self)                                                  -> bool {
+        fn scan(&mut self)                                                  -> bool {
             true
         }
 
@@ -626,19 +626,19 @@ mod tests {
             todo!()
         }
 
-        fn fetch_artists(&self)                                         -> Vec<Item> {
+        fn fetch_artists(&mut self)                                         -> Vec<Item> {
             todo!()
         }
 
-        fn fetch_albums(&self)                                          -> Vec<Item> {
+        fn fetch_albums(&mut self)                                          -> Vec<Item> {
             todo!()
         }
 
-        fn fetch_playlists(&self)                                       -> Vec<Item> {
+        fn fetch_playlists(&mut self)                                       -> Vec<Item> {
             todo!()
         }
 
-        fn fetch_songs(&self)                                           -> Vec<Item> {
+        fn fetch_songs(&mut self)                                           -> Vec<Item> {
             todo!()
         }
     }
