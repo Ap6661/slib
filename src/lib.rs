@@ -438,6 +438,7 @@ pub struct Status {
     pub playing: bool,
     pub current_song: Option<Item>,
     pub queue: Vec<Item>,
+    pub volume: f32,
 }
 
 #[derive(Deserialize,Serialize, Debug, PartialEq, Eq, Clone)]
