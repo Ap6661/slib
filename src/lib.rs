@@ -1,5 +1,5 @@
 use core::f32;
-use std::{io::{self, BufRead, BufReader, Write}, time::Duration}; 
+use std::{collections::VecDeque, io::{self, BufRead, BufReader, Write}, time::Duration}; 
 use interprocess::local_socket::{prelude::*, GenericNamespaced, ListenerOptions, Stream, ToNsName};
 use serde::{Deserialize, Serialize};
 use checksum_dir::checksum;
@@ -437,7 +437,7 @@ impl Client {
 pub struct Status {
     pub playing: bool,
     pub current_song: Option<Item>,
-    pub queue: Vec<Item>,
+    pub queue: VecDeque<Item>,
     pub volume: f32,
 }
 
