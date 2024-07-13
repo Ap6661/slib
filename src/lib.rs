@@ -49,7 +49,7 @@ pub enum  Commands {
     /// Add a song to the queue
     QueueAdd{id: Item, position: u8},
     /// Remove a song from the queue
-    QueueRemove(Item),
+    QueueRemove(u8),
 
     /// Adjust volume by percent
     VolumeAdjust(f32),
@@ -113,7 +113,7 @@ pub trait Daemon {
     /// Add a song to the queue
     fn queue_add(&mut self, id: Item, position: u8)                 -> bool;
     /// Remove a song from the queue
-    fn queue_remove(&mut self, id: Item)                            -> bool;
+    fn queue_remove(&mut self, index: u8)                           -> bool;
     /// Adjust volume by percent
     fn volume_adjust(&mut self, amount: f32)                        -> bool;
     /// Set the volume by percent
@@ -215,7 +215,7 @@ pub trait Daemon {
                 Commands::Pause                            => { serde_json::to_string( &self.pause()                            ) },
                 Commands::Skip                             => { serde_json::to_string( &self.skip()                             ) },
                 Commands::QueueAdd{id, position}           => { serde_json::to_string( &self.queue_add(id, position)            ) },
-                Commands::QueueRemove(id)                  => { serde_json::to_string( &self.queue_remove(id)                   ) },
+                Commands::QueueRemove(index)               => { serde_json::to_string( &self.queue_remove(index)                ) },
                 Commands::VolumeAdjust(amount)             => { serde_json::to_string( &self.volume_adjust(amount)              ) },
                 Commands::VolumeSet(amount)                => { serde_json::to_string( &self.volume_set(amount)                 ) },
                 Commands::Search(query)                    => { serde_json::to_string( &self.search(query)                      ) },
@@ -357,9 +357,9 @@ impl Client {
         serde_json::from_str::<bool>(&self.send_command(Commands::QueueAdd{id, position})).unwrap()
     }
     /// Remove a song from the queue
-    pub fn queue_remove(&self, id: Item)                                -> bool
+    pub fn queue_remove(&self, index: u8)                                -> bool
     {
-        serde_json::from_str::<bool>(&self.send_command(Commands::QueueRemove(id))).unwrap()
+        serde_json::from_str::<bool>(&self.send_command(Commands::QueueRemove(index))).unwrap()
     }
     /// Adjust volume by percent
     pub fn volume_adjust(&self, amount: f32)                             -> bool
@@ -545,8 +545,8 @@ mod tests {
             todo!()
         }
 
-        fn queue_remove(&mut self, id: Item)                           -> bool {
-            let _ = id;
+        fn queue_remove(&mut self, index: u8)                           -> bool {
+            let _ = index;
             todo!()
         }
 
